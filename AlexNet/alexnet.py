@@ -7,27 +7,32 @@ class AlexNet(nn.Module):
         super(AlexNet, self).__init__()
 
         self.feature = nn.Sequential(
-            nn.Conv2d(3, 32, 3, 1),
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2),
-            nn.Conv2d(32, 64, 3, 1),
-            nn.ReLU(),
+            nn.Conv2d(3, 96, 11, 4, 2),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(3, 2),
+            nn.Conv2d(96, 256, 5, 2),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(3, 2),
+            nn.Conv2d(256, 384, 3, 2),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(384, 384, 3, 2),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(384, 256, 3, 2),
+            nn.ReLU(inplace=True)
         )
-
+        self.avg_pool = nn.AdaptiveAvgPool2d((6, 6))
         self.classifier = nn.Sequential(
-            nn.Linear(64 * 13 * 13, 1024),
+            nn.dropout(p=0.5),
+            nn.Linear(256 * 6 * 6, 4096),
             nn.ReLU(),
             nn.Dropout(0.5),
-            nn.Linear(1024, 128),
+            nn.Linear(4096, 4096),
             nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(128, 10),
+            nn.Linear(4096, 10),
         )
 
     def forward(self, x):
         x = self.feature(x)
         x = torch.flatten(x, 1)
-        print(x.shape)
-        # x = x.view(-1)
         x = self.classifier(x)
         return x
